@@ -62,15 +62,3 @@ def evaluate_tracker(dataset_path, network_path, results_dir, visualize, thresho
         
         save_results(results, bboxes_path)
         save_results(scores, scores_path)
-
-
-parser = argparse.ArgumentParser(description='SiamFC Runner Script')
-
-parser.add_argument("--dataset", help="Path to the dataset", required=True, action='store')
-parser.add_argument("--net", help="Path to the pre-trained network", required=True, action='store')
-parser.add_argument("--results_dir", help="Path to the directory to store the results", required=True, action='store')
-parser.add_argument("--visualize", help="Show ground-truth annotations", required=False, action='store_true')
-
-args = parser.parse_args()
-
-evaluate_tracker(args.dataset, args.net, args.results_dir, args.visualize)

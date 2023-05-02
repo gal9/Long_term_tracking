@@ -109,8 +109,8 @@ class TrackerSiamFC(Tracker):
             # Longterm parameters
             "sampling": "uniform",
             "sampling_variance": 3,
-            "redetection_threshold": 1,
-            "search_num": 100}
+            "threshold_factor": 0.6,
+            "search_num": 10}
 
         for key, val in kwargs.items():
             if key in cfg:
@@ -158,6 +158,8 @@ class TrackerSiamFC(Tracker):
         z = torch.from_numpy(z).to(
             self.device).permute(2, 0, 1).unsqueeze(0).float()
         self.kernel = self.net.backbone(z)
+
+        self.threshold = None
     
     @torch.no_grad()
     def update(self, img):
@@ -198,9 +200,14 @@ class TrackerSiamFC(Tracker):
             response = (1 - self.cfg.window_influence) * response + \
                 self.cfg.window_influence * self.hann_window
             loc = np.unravel_index(response.argmax(), response.shape)
-            if(max_resp < self.cfg.redetection_threshold):
+
+            if(self.threshold is None):
+                self.threshold = max_resp*self.cfg.threshold_factor
+                print(f"threshold: {self.threshold}")
+
+            if(max_resp < self.threshold):
                 self.redetection = True
-                print(f"fail {max_resp}")
+                # print(f"fail {max_resp}")
             else:
                 # locate target center
                 disp_in_response = np.array(loc) - (self.upscale_sz - 1) / 2
@@ -274,12 +281,12 @@ class TrackerSiamFC(Tracker):
                 self.center[0] + 1 - (self.target_sz[0] - 1) / 2,
                 self.target_sz[1], self.target_sz[0]])
 
-            if(max_resp > self.cfg.redetection_threshold):
+            if(max_resp > self.threshold):
                 self.redetection = False
             else:    
-                print(f"fail {max_resp}")
+                # print(f"fail {max_resp}")
 
-        print(max_resp)
+        # print(max_resp)
         return box, max_resp
     
     def train_step(self, batch, backward=True):
