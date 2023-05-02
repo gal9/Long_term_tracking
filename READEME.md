@@ -1,0 +1,1 @@
+python test_tracker.py --dataset ./data --net ./models/siamfc_net.pth --visualize --results_dir ./results/long
