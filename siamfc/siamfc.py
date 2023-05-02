@@ -283,7 +283,7 @@ class TrackerSiamFC(Tracker):
 
             if(max_resp > self.threshold):
                 self.redetection = False
-            else:    
+            #else:    
                 # print(f"fail {max_resp}")
 
         # print(max_resp)
