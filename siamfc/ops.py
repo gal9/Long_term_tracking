@@ -118,3 +118,34 @@ def crop_and_resize(img, center, size, out_size,
                        interpolation=interp)
 
     return patch
+
+
+def sample_uniform(num_samples: int, image):
+    indices = np.random.randint(0, image.shape[0]*image.shape[1], num_samples)
+
+    # Convert the indices to 2D coordinates
+    coordinates = [np.array([i // image.shape[1],i % image.shape[1]]) for i in indices]
+
+    return np.array(coordinates).astype(np.float64)     
+
+
+def sample_gauss(num_samples: int, div_factor: float, mean, img):
+    cov = [np.array([img.shape[0]*div_factor, 0]), [0, img.shape[1]*div_factor]]
+    coordinates = np.random.multivariate_normal(mean, cov, num_samples)
+
+    for coordinate in coordinates:
+        if(coordinate[0]<0):
+            coordinate[0] = 0
+        elif(coordinate[0]>= img.shape[0]):
+            coordinate[0] = img.shape[0]-1
+        else:
+            coordinate[0] = np.round(coordinate[0])
+
+        if(coordinate[1]<0):
+            coordinate[1] = 0
+        elif(coordinate[1]>= img.shape[1]):
+            coordinate[1] = img.shape[1]-1
+        else:
+            coordinate[1] = np.round(coordinate[1])
+
+    return coordinates.astype(np.float64)
