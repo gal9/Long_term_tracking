@@ -128,6 +128,7 @@ class TrackerSiamFC(Tracker):
             box[0] - 1 + (box[2] - 1) / 2,
             box[3], box[2]], dtype=np.float32)
         self.center, self.target_sz = box[:2], box[2:]
+        self.last_true_center = [box[0], box[1]]
 
         # create hanning window
         self.upscale_sz = self.cfg.response_up * self.cfg.response_sz
@@ -158,7 +159,6 @@ class TrackerSiamFC(Tracker):
         z = torch.from_numpy(z).to(
             self.device).permute(2, 0, 1).unsqueeze(0).float()
         self.kernel = self.net.backbone(z)
-
         self.threshold = None
     
     @torch.no_grad()
@@ -207,7 +207,7 @@ class TrackerSiamFC(Tracker):
 
             if(max_resp < self.threshold):
                 self.redetection = True
-                # print(f"fail {max_resp}")
+                print(f"fail {max_resp}")
             else:
                 # locate target center
                 disp_in_response = np.array(loc) - (self.upscale_sz - 1) / 2
@@ -216,6 +216,7 @@ class TrackerSiamFC(Tracker):
                 disp_in_image = disp_in_instance * self.x_sz * \
                     self.scale_factors[scale_id] / self.cfg.instance_sz
                 self.center += disp_in_image
+                self.last_true_center = self.center
 
                 # update target size
                 scale =  (1 - self.cfg.scale_lr) * 1.0 + \
@@ -232,10 +233,10 @@ class TrackerSiamFC(Tracker):
         if(self.redetection):
             if(self.cfg.sampling == "uniform"):
                 samples = ops.sample_uniform(self.cfg.search_num, img)
-            elif(self.cgf.sampling == "gaussian"):
-                samples = osp.sample_gauss(self.cfg.num_samples,
+            elif(self.cfg.sampling == "gaussian"):
+                samples = ops.sample_gauss(self.cfg.search_num,
                                            self.cfg.sampling_variance,
-                                           [self.center[1], self.center[0]],
+                                           [self.last_true_center[0], self.last_true_center[1]],
                                            img)
 
             # search images
@@ -283,10 +284,10 @@ class TrackerSiamFC(Tracker):
 
             if(max_resp > self.threshold):
                 self.redetection = False
-            #else:    
-                # print(f"fail {max_resp}")
+            else:    
+                print(f"fail {max_resp}")
 
-        # print(max_resp)
+        print(max_resp)
         return box, max_resp
     
     def train_step(self, batch, backward=True):
