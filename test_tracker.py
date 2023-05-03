@@ -7,7 +7,7 @@ from tools.sequence_utils import save_results
 from siamfc import TrackerSiamFC
 
 
-def evaluate_tracker(dataset_path, network_path, results_dir, visualize, threshold_factor = 0.65, search_num=5):
+def evaluate_tracker(dataset_path, network_path, results_dir, visualize, threshold_factor = 0.65, search_num=3):
     
     sequences = []
     with open(os.path.join(dataset_path, 'list.txt'), 'r') as f:
@@ -17,7 +17,7 @@ def evaluate_tracker(dataset_path, network_path, results_dir, visualize, thresho
     tracker = TrackerSiamFC(
         net_path=network_path,
         sampling="gaussian",
-        sampling_variance=3,
+        sampling_variance=1,
         threshold_factor=threshold_factor,
         search_num=search_num
     )
