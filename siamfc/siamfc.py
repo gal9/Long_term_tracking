@@ -287,7 +287,7 @@ class TrackerSiamFC(Tracker):
             else:    
                 print(f"fail {max_resp}")
 
-        print(max_resp)
+        # print(max_resp)
         return box, max_resp
     
     def train_step(self, batch, backward=True):
